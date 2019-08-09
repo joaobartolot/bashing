@@ -13,6 +13,9 @@ function message {
 			echo "	"$2
 			echo ""
 			;;
+		-m)
+			echo ""
+			echo $2
 	esac
 }
 
@@ -41,7 +44,6 @@ mkenv () {
 		esac
 
 	elif  [ "$#" == 1 ]; then
-		fullPath=
 
 		virtualenv -p python3 ~/.virtualenvs/$1
 		source ~/.virtualenvs/$1/bin/activate
@@ -116,6 +118,15 @@ workon () {
 				-l)
 					ls ~/.virtualenvs/
 					;;
+				-m)
+					message -m "Activating the virtualenv \"$2\""
+					# Activating a virtual environment
+					source ~/.virtualenvs/$2/bin/activate
+					if [ ! "$VIRTUAL_ENV" == "" ]; then
+						message -m "Done!"
+					fi
+					;;
+
 			esac
 		fi
 
@@ -130,6 +141,7 @@ runserver () {
 		if [ $# == 0 ]; then
 			if [ ! $VIRTUAL_ENV == "" ]; then
 				if [ -f ./manage.py ]; then
+					message -m "Running the server..."
 					python manage.py runserver 0.0.0.0:8000
 				else
 					message -e "You need to be inside a django project folder to run this command"
@@ -144,11 +156,78 @@ runserver () {
 			case $1 in
 				-p | --project)
 					cd ~/Projects/$2
-					workon $2
+					workon -m $2
 					if [ ! $VIRTUAL_ENV == "" ]; then
 						python manage.py runserver 0.0.0.0:8000
 					fi
 				;;
 			esac
+
+		elif [ $# == 6 ]; then
+			case $1 in
+				-p | --django-project)
+					case $3 in
+						-h | --host)
+							case $5 in
+								-po | --port)
+									cd ~/Projects/$2
+									workon -m $2
+									if [ ! $VIRTUAL_ENV == "" ]; then
+										message -m "Running the server..."
+										python manage.py runserver $4:$6
+									fi
+									;;
+							esac
+							;;
+					esac
+					;;
+			esac
+									
 		fi
+}
+
+livereload () {
+		if [ $# == 0 ]; then
+			if [ ! $VIRTUAL_ENV == "" ]; then
+				if [ -f ./manage.py ]; then
+					message -m "Running the liveserver..."
+					python manage.py livereload
+				else
+					message -e "You need to be inside a django project folder to run this command"
+				fi
+			else
+				message -e "Please run or create a virtual environment before running the server"
+			fi
+
+		# livereload --project project-name
+		# livereload --project project-name --host ip-address --port port
+		elif [ $# == 2 ]; then
+			case $1 in
+				-p | --project)
+					cd ~/Projects/$2
+					workon -m $2
+					if [ ! $VIRTUAL_ENV == "" ]; then
+						message -m "Running the liveserver..."
+						python manage.py livereload
+					fi
+				;;
+			esac
+		fi
+	
+}
+
+project () {
+	if [ $# == 1 ]; then
+		cd ~/Projects/$1
+
+	elif [ $# == 2 ]; then
+		case $1 in
+			-a | --activate)
+				cd ~/Projects/$2
+				if [ "$VIRTUAL_ENV" == "" ]; then
+					workon $2
+				fi
+				;;
+		esac
+	fi
 }
