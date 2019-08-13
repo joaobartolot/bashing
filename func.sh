@@ -9,7 +9,13 @@ function message {
 	case $1 in
 		-e)
 			echo ""
-			echo "*ERROR*"
+			echo "*Error:"
+			echo "	"$2
+			echo ""
+			;;
+		-w)
+			echo ""
+			echo "*Warning:"
 			echo "	"$2
 			echo ""
 			;;
@@ -31,22 +37,31 @@ mkenv () {
 	elif [ "$#" == 2 ]; then
 		case $1 in
 			-n)
-				virtualenv -p python3 ~/.virtualenvs/$2
-				source ~/.virtualenvs/$2/bin/activate
+				if [ $OSTYPE == 'msys' ]; then
+					virtualenv ~/.virtualenvs/$2
+					source ~/.virtualenvs/$2/Scripts/activate
+				else
+					virtualenv -p python3 ~/.virtualenvs/$2
+					source ~/.virtualenvs/$2/bin/activate
+				fi
 				;;
 
 			-d)
 				virtualenv -p python3 ~/.virtualenvs/$2
-				source ~/.virtualenvs/$2
+				source ~/.virtualenvs/$2/bin/activate
 				pip install django
 				;;
 
 		esac
 
 	elif  [ "$#" == 1 ]; then
-
-		virtualenv -p python3 ~/.virtualenvs/$1
-		source ~/.virtualenvs/$1/bin/activate
+		if [ $OSTYPE == 'msys' ]; then
+			virtualenv ~/.virtualenvs/$2
+			source ~/.virtualenvs/$2/Scripts/activate
+		else
+			virtualenv -p python3 ~/.virtualenvs/$1
+			source ~/.virtualenvs/$1/bin/activate
+		fi
 
 	fi
 }
@@ -69,8 +84,7 @@ clone () {
 
 					if [ "$VIRTUAL_ENV" == "" ]; then
 						if [ ! -d ~/.virtualenvs/$2 ]; then
-							virtualenv -p python3 ~/.virtualenvs/$2
-							source ~/.virtualenvs/$2/bin/activate
+							mkenv -n $2
 
 							if [ ! "$VIRTUAL_ENV" == "" ]; then
 								pip install django
@@ -110,7 +124,11 @@ workon () {
 	if [ "$VIRTUAL_ENV" == "" ]; then
 		if [ $# == 1 ]; then
 			# Activating a virtual environment
-			source ~/.virtualenvs/$1/bin/activate
+			if [ $OSTYPE == 'msys' ]; then
+				source ~/.virtualenvs/$1/Scripts/activate
+			else
+				source ~/.virtualenvs/$1/bin/activate
+			fi
 
 		elif [ $# == 2 ]; then
 			# listing all virtual environments that exists in the virtualenvs folder
@@ -121,7 +139,13 @@ workon () {
 				-m)
 					message -m "Activating the virtualenv \"$2\""
 					# Activating a virtual environment
-					source ~/.virtualenvs/$2/bin/activate
+					
+					if [ $OSTYPE == 'msys' ]; then
+						source ~/.virtualenvs/$2/Scripts/activate
+					else
+						source ~/.virtualenvs/$2/bin/activate
+					fi
+					
 					if [ ! "$VIRTUAL_ENV" == "" ]; then
 						message -m "Done!"
 					fi
