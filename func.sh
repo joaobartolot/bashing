@@ -47,9 +47,16 @@ mkenv () {
 				;;
 
 			-d)
-				virtualenv -p python3 ~/.virtualenvs/$2
-				source ~/.virtualenvs/$2/bin/activate
+				if [ $OSTYPE == 'msys' ]; then
+					virtualenv ~/.virtualenvs/$2
+					source ~/.virtualenvs/$2/Scripts/activate
+				else
+					virtualenv -p python3 ~/.virtualenvs/$2
+					source ~/.virtualenvs/$2/bin/activate
+				fi
 				pip install django
+				django-admin startproject ~/Projects/$2
+				cd ~/Projects/$2
 				;;
 
 		esac
